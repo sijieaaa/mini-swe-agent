@@ -50,6 +50,7 @@ def main(
     model_name: str | None = typer.Option( None, "-m", "--model", help="Model to use",),
     model_class: str | None = typer.Option(None, "--model-class", help="Model class to use (e.g., 'anthropic' or 'minisweagent.models.anthropic.AnthropicModel')", rich_help_panel="Advanced"),
     task: str | None = typer.Option(None, "-t", "--task", help="Task/problem statement", show_default=False),
+    task_path: str | None = typer.Option(None, "--task-path", help="Path to a text file containing the task/problem statement", show_default=False),
     yolo: bool = typer.Option(False, "-y", "--yolo", help="Run without confirmation"),
     cost_limit: float | None = typer.Option(None, "-l", "--cost-limit", help="Cost limit. Set to 0 to disable."),
     config_spec: Path = typer.Option(DEFAULT_CONFIG, "-c", "--config", help="Path to config file"),
@@ -63,17 +64,20 @@ def main(
     config = yaml.safe_load(config_path.read_text())
 
     if not task:
-        console.print("[bold yellow]What do you want to do?")
-        task = prompt_session.prompt(
-            "",
-            multiline=True,
-            bottom_toolbar=HTML(
-                "Submit task: <b fg='yellow' bg='black'>Esc+Enter</b> | "
-                "Navigate history: <b fg='yellow' bg='black'>Arrow Up/Down</b> | "
-                "Search history: <b fg='yellow' bg='black'>Ctrl+R</b>"
-            ),
-        )
-        console.print("[bold green]Got that, thanks![/bold green]")
+        if task_path:
+            task = Path(task_path).read_text()
+        else:
+            console.print("[bold yellow]What do you want to do?")
+            task = prompt_session.prompt(
+                "",
+                multiline=True,
+                bottom_toolbar=HTML(
+                    "Submit task: <b fg='yellow' bg='black'>Esc+Enter</b> | "
+                    "Navigate history: <b fg='yellow' bg='black'>Arrow Up/Down</b> | "
+                    "Search history: <b fg='yellow' bg='black'>Ctrl+R</b>"
+                ),
+            )
+            console.print("[bold green]Got that, thanks![/bold green]")
 
     if yolo:
         config.setdefault("agent", {})["mode"] = "yolo"
